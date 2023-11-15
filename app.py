@@ -19,7 +19,7 @@ handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
 answers = {}
 #1が入力された場合の回答を定義
 answers["1"] = ("desknet'sにログインし、以下の手順で申請してください\n"
-"1. 左サイドメニューのワークフローをクリックしてね\n"
+"1. 左サイドメニューのワークフローをクリック\n"
 "2. 「申請の作成」 ボタンをクリック\n"
 "3. 申請書 「選択」 ボタンをクリック後、「通勤定期代申請書」を選択\n"
 "4. 申請書　入力フォームに記入して申請")
@@ -110,12 +110,12 @@ def handle_message(event):
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
 
-    #入力値に合わせた回答文を編集
-    if input_message in answers:
-        reply_message = answers[input_message]
-    else:
-        #入力対象外は番号を選択させる文を回答
-        reply_message = anserelse
+    
+
+
+
+
+    
 
     #回答文を返信
     line_bot_api.reply_message(
