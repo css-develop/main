@@ -29,7 +29,7 @@ with open(file_path, 'r') as file:
 #回答文を設定するマップ
 answers = {}
 #1が入力された場合の回答を定義
-answers["110"] = (file_content)
+answers["110"] = (print(file_content))
 
 @app.route("/")
 def test():
