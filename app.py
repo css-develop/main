@@ -16,7 +16,7 @@ line_bot_api = LineBotApi('+CxtyG18ZUz1Y8J9p6h3DpBhEckt3VpFpO7CHrZhqIvZtPMNRgEcY
 handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
 
 # ファイルのパスを指定
-file_path = 'C:\Users\note142\Desktop\takeyama\memo.txt'
+file_path = r'C:\Users\note142\Desktop\takeyama\memo.txt'
 
 # ファイルを読み込む
 with open(file_path, 'r') as file:
