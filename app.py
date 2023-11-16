@@ -110,11 +110,12 @@ def handle_message(event):
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
 
-    
-
-
-
-
+   #入力値に合わせた回答文を編集
+    if input_message in answers:
+        reply_message = answers[input_message]
+    else:
+        #入力対象外は番号を選択させる文を回答
+        reply_message = anserelse 
     
 
     #回答文を返信
