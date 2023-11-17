@@ -111,11 +111,11 @@ def handle_message(event):
     input_message = event.message.text.strip()
 
     #入力値に合わせた回答文を編集
-    if input_message in answers:
-        reply_message = answers[input_message]
+    if            in        :
+                   = answers[            ]
     else:
         #入力対象外は番号を選択させる文を回答
-        reply_message = anserelse
+                    =          
 
     #回答文を返信
     line_bot_api.reply_message(
