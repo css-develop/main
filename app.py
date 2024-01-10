@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, abort
 
 from linebot import (
@@ -11,6 +12,7 @@ from linebot.models import (
 )
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 line_bot_api = LineBotApi('+CxtyG18ZUz1Y8J9p6h3DpBhEckt3VpFpO7CHrZhqIvZtPMNRgEcYRFLdaKcivBYWuIeMWH1zG5dB3aVK2XjF17tQuD/+vKmp/GL4kv+sRKNSh6Awgi//6VdXIHZj9a/rBe1oT4fIFDG6lrpB3J83AdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
@@ -46,7 +48,7 @@ answers["3"] = ("ManageOZO3にログインし、以下の手順で申請して�
 answers["4"] = "総務人事グループ　谷口まで電話、メール等でご依頼ください。"
 
 #5が入力された場合の回答文を定義
-answers["5"] = ("以下の手順で申請してください。\n"
+answers["6"] = ("以下の手順で申請してください。\n"
 "1.desknet's > 設備予約にて、Zoomのスケジュール入力\n"
 "2.Zoom管理者（CC:総務人事グループ　谷口）宛てに必要事項を記載してメールにて依頼\n"
 "　 Zoom管理者：css_zoom@chuoss.co.jp\n"
@@ -54,7 +56,7 @@ answers["5"] = ("以下の手順で申請してください。\n"
 "予約が完了後、ログイン情報をご連絡いたします。")
 
 #6が入力された場合の回答文を定義
-answers["6"] = ("desknet's、ManageOZO3、SYNCNELにてパスワードを規程回数以上間違えるとロックがかかります。\n"
+answers["5"] = ("desknet's、ManageOZO3、SYNCNELにてパスワードを規程回数以上間違えるとロックがかかります。\n"
 "ロック解除は総務人事グループまでご連絡ください。")
 
 #7が入力された場合の回答文を定義
@@ -73,19 +75,30 @@ answers["7"] = ("以下の書類を提出お願いいたします。\n"
 "　※本籍地・マイナンバーの記載は不要\n"
 "　 ※メールで提出の場合は、写しで可")
 
+answers["8"] = "消費税額を計算します。\n金額を入力してください。"
+answers["9"] = "消費税額（軽減税率対象）を計算します。\n金額を入力してください。"
+
 #7が入力された場合の回答文を定義
 anserelse = ("お疲れ様です。以下の問い合わせについてお答えします。該当する番号を記入してください。\n"
 "1.通勤定期代更\n"
-"2.週報提出\n"
 "3.経費精算手続き\n"
 "4.名刺追加\n"
 "5.Zoom予約\n"
 "6.ロック解除\n"
 "7.引っ越し後の手続き\n")
 
+isCalcMode = False
+isKeigen = False
+
 @app.route("/")
 def test():
     return "OK TEST"
+
+@app.route("/test")
+def test_answer():
+    input_message = request.args["text"].strip()
+    reply_message = create_answer(input_message=input_message).replace("\n", "<br>")
+    return reply_message
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -107,21 +120,47 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
-
-    #入力値に合わせた回答文を編集
-    if input_message in answers:
-        reply_message = answers[input_message]
-    else:
-        #入力対象外は番号を選択させる文を回答
-        reply_message = anserelse
+    reply_message = create_answer(input_message=input_message)
 
     #回答文を返信
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_message))
+    
+def create_answer(input_message):
+    global isCalcMode
+    global isKeigen
 
+    if isCalcMode:
+        if not input_message.isdigit():
+            return "数値を入力してください！！"
+        
+        # 消費税計算
+        tax = None
+        if isKeigen:
+            tax = 0.08
+        else:
+            tax = 0.1
+
+        kingaku = int(int(input_message) * tax)
+        isCalcMode = False
+        return "消費税を含めた金額は" + str(kingaku) + "円です。"
+
+    #入力値に合わせた回答文を編集
+    if input_message in answers:
+        if input_message == "8":
+            isCalcMode = True
+        elif input_message == "9":
+            isCalcMode = True
+            isKeigen = True
+        
+        return answers[input_message]
+    else:
+        #入力対象外は番号を選択させる文を回答
+        return anserelse
 
 if __name__ == "__main__":
     app.run()
