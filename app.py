@@ -106,7 +106,6 @@ def callback():
     signature = request.headers['X-Line-Signature']
     # get request body as text
     body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
 
     # handle webhook body
     try:
@@ -120,6 +119,7 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    app.logger.info("ユーザー入力値: " + event.message.text)
 
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
@@ -136,7 +136,7 @@ def create_answer(input_message):
 
     if isCalcMode:
         if not input_message.isdigit():
-            return "数値を入力してください！！"
+            return "整数値のみを入力してください。\n文字や小数値は入力できません。"
         
         # 消費税計算
         tax = None
@@ -147,7 +147,7 @@ def create_answer(input_message):
 
         kingaku = int(int(input_message) * tax)
         isCalcMode = False
-        return "消費税を含めた金額は" + str(kingaku) + "円です。"
+        return "消費税額は" + str(kingaku) + "円です。"
 
     #入力値に合わせた回答文を編集
     if input_message in answers:
