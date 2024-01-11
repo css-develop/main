@@ -75,10 +75,7 @@ answers["7"] = ("以下の書類を提出お願いいたします。\n"
 "　※本籍地・マイナンバーの記載は不要\n"
 "　 ※メールで提出の場合は、写しで可")
 
-answers["8"] = "消費税額を計算します。\n金額を入力してください。"
-answers["9"] = "消費税額（軽減税率対象）を計算します。\n金額を入力してください。"
-
-#7が入力された場合の回答文を定義
+#上記以外の番号が入力された場合の回答文を定義
 anserelse = ("お疲れ様です。以下の問い合わせについてお答えします。該当する番号を記入してください。\n"
 "1.通勤定期代更\n"
 "3.経費精算手続き\n"
@@ -86,9 +83,6 @@ anserelse = ("お疲れ様です。以下の問い合わせについてお答え
 "5.Zoom予約\n"
 "6.ロック解除\n"
 "7.引っ越し後の手続き\n")
-
-isCalcMode = False
-isKeigen = False
 
 @app.route("/")
 def test():
@@ -119,44 +113,23 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    #ログ出力
     app.logger.info("ユーザー入力値: " + event.message.text)
 
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
+
+    #回答文を作成
     reply_message = create_answer(input_message=input_message)
 
     #回答文を返信
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_message))
-    
+ 
 def create_answer(input_message):
-    global isCalcMode
-    global isKeigen
-
-    if isCalcMode:
-        if not input_message.isdigit():
-            return "整数値のみを入力してください。\n文字や小数値は入力できません。"
-        
-        # 消費税計算
-        tax = None
-        if isKeigen:
-            tax = 0.08
-        else:
-            tax = 0.1
-
-        kingaku = int(int(input_message) * tax)
-        isCalcMode = False
-        return "消費税額は" + str(kingaku) + "円です。"
-
     #入力値に合わせた回答文を編集
     if input_message in answers:
-        if input_message == "8":
-            isCalcMode = True
-        elif input_message == "9":
-            isCalcMode = True
-            isKeigen = True
-        
         return answers[input_message]
     else:
         #入力対象外は番号を選択させる文を回答
