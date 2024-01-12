@@ -14,6 +14,8 @@ from linebot.models import (
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 app.config["SECRET_KEY"] = b"1cb21091ff9c369e228e862bfcab3603"
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 line_bot_api = LineBotApi('+CxtyG18ZUz1Y8J9p6h3DpBhEckt3VpFpO7CHrZhqIvZtPMNRgEcYRFLdaKcivBYWuIeMWH1zG5dB3aVK2XjF17tQuD/+vKmp/GL4kv+sRKNSh6Awgi//6VdXIHZj9a/rBe1oT4fIFDG6lrpB3J83AdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
