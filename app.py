@@ -118,6 +118,8 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     app.logger.info("ユーザー入力値: " + event.message.text)
+    app.logger.info("ユーザーID: " + event.source.user_id)
+    app.logger.info("セッション値: " + session.get("isCalcMode", "None"))
 
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
