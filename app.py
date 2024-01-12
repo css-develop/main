@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, request, abort, session
+from flask import Flask, request, abort
 
 from linebot import (
     LineBotApi, WebhookHandler
@@ -13,9 +13,6 @@ from linebot.models import (
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-app.config["SECRET_KEY"] = b"1cb21091ff9c369e228e862bfcab3603"
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 
 line_bot_api = LineBotApi('+CxtyG18ZUz1Y8J9p6h3DpBhEckt3VpFpO7CHrZhqIvZtPMNRgEcYRFLdaKcivBYWuIeMWH1zG5dB3aVK2XjF17tQuD/+vKmp/GL4kv+sRKNSh6Awgi//6VdXIHZj9a/rBe1oT4fIFDG6lrpB3J83AdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
@@ -90,6 +87,9 @@ anserelse = ("お疲れ様です。以下の問い合わせについてお答え
 "6.ロック解除\n"
 "7.引っ越し後の手続き\n")
 
+#ユーザーIDと計算モードフラグのdict（疑似セッション）
+session = {}
+
 @app.route("/")
 def test():
     return "OK TEST"
@@ -97,7 +97,7 @@ def test():
 @app.route("/answer")
 def test_answer():
     input_message = request.args["text"].strip()
-    reply_message = create_answer(input_message=input_message).replace("\n", "<br>")
+    reply_message = create_answer(input_message=input_message, userid="test_user").replace("\n", "<br>")
     return reply_message
 
 @app.route("/callback", methods=['POST'])
@@ -119,34 +119,35 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    app.logger.info("ユーザー入力値: " + event.message.text)
-    app.logger.info("ユーザーID: " + event.source.user_id)
-    app.logger.info("セッション値: " + session.get("isCalcMode", "None"))
+    app.logger.info(f"ユーザーID: {event.source.user_id}")
+    app.logger.info(f"ユーザー入力値: {event.message.text}")
 
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
-    reply_message = create_answer(input_message=input_message)
+    reply_message = create_answer(input_message=input_message, userid=event.source.user_id)
 
     #回答文を返信
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_message))
     
-def create_answer(input_message):
-    isCalcMode = session.get("isCalcMode", False)
+def create_answer(input_message, userid):
+    #セッションから計算モードフラグを取得
+    isCalcMode = session.get(userid, False)
     if isCalcMode:
         if not input_message.isdigit():
             return "整数値のみを入力してください。\n文字や小数値は入力できません。"
         
         # 消費税計算
         kingaku = int(int(input_message) * 0.1)
-        session["isCalcMode"] = False
-        return "消費税額は" + str(kingaku) + "円です。"
+        session[userid] = False
+        return f"消費税額は{str(kingaku)}円です。"
 
     #入力値に合わせた回答文を編集
     if input_message in answers:
         if input_message == "8":
-            session["isCalcMode"] = True
+            #消費税計算モードをONにしてセッションに保存
+            session[userid] = True
         
         return answers[input_message]
     else:
