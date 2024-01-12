@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, request, abort
+from flask import Flask, request, abort, session
 
 from linebot import (
     LineBotApi, WebhookHandler
@@ -13,6 +13,7 @@ from linebot.models import (
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
+app.config["SECRET_KEY"] = b"1cb21091ff9c369e228e862bfcab3603"
 
 line_bot_api = LineBotApi('+CxtyG18ZUz1Y8J9p6h3DpBhEckt3VpFpO7CHrZhqIvZtPMNRgEcYRFLdaKcivBYWuIeMWH1zG5dB3aVK2XjF17tQuD/+vKmp/GL4kv+sRKNSh6Awgi//6VdXIHZj9a/rBe1oT4fIFDG6lrpB3J83AdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
@@ -87,14 +88,11 @@ anserelse = ("お疲れ様です。以下の問い合わせについてお答え
 "6.ロック解除\n"
 "7.引っ越し後の手続き\n")
 
-isCalcMode = False
-isKeigen = False
-
 @app.route("/")
 def test():
     return "OK TEST"
 
-@app.route("/test")
+@app.route("/answer")
 def test_answer():
     input_message = request.args["text"].strip()
     reply_message = create_answer(input_message=input_message).replace("\n", "<br>")
@@ -131,31 +129,20 @@ def handle_message(event):
         TextSendMessage(text=reply_message))
     
 def create_answer(input_message):
-    global isCalcMode
-    global isKeigen
-
+    isCalcMode = session.get("isCalcMode", False)
     if isCalcMode:
         if not input_message.isdigit():
             return "整数値のみを入力してください。\n文字や小数値は入力できません。"
         
         # 消費税計算
-        tax = None
-        if isKeigen:
-            tax = 0.08
-        else:
-            tax = 0.1
-
-        kingaku = int(int(input_message) * tax)
-        isCalcMode = False
+        kingaku = int(int(input_message) * 0.1)
+        session["isCalcMode"] = False
         return "消費税額は" + str(kingaku) + "円です。"
 
     #入力値に合わせた回答文を編集
     if input_message in answers:
         if input_message == "8":
-            isCalcMode = True
-        elif input_message == "9":
-            isCalcMode = True
-            isKeigen = True
+            session["isCalcMode"] = True
         
         return answers[input_message]
     else:
