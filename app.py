@@ -97,7 +97,7 @@ def test():
 @app.route("/answer")
 def test_answer():
     input_message = request.args["text"].strip()
-    reply_message = create_answer(input_message=input_message, userid="test_user").replace("\n", "<br>")
+    reply_message = create_answer(input_message=input_message, user_id="test_user").replace("\n", "<br>")
     return reply_message
 
 @app.route("/callback", methods=['POST'])
@@ -119,35 +119,35 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    app.logger.info(f"ユーザーID: {event.source.user_id}")
+    #app.logger.info(f"ユーザーID: {event.source.user_id}")
     app.logger.info(f"ユーザー入力値: {event.message.text}")
 
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
-    reply_message = create_answer(input_message=input_message, userid=event.source.user_id)
+    reply_message = create_answer(input_message=input_message, user_id=event.source.user_id)
 
     #回答文を返信
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_message))
     
-def create_answer(input_message, userid):
+def create_answer(input_message, user_id):
     #セッションから計算モードフラグを取得
-    isCalcMode = session.get(userid, False)
+    isCalcMode = session.get(user_id, False)
     if isCalcMode:
         if not input_message.isdigit():
             return "整数値のみを入力してください。\n文字や小数値は入力できません。"
         
         # 消費税計算
         kingaku = int(int(input_message) * 0.1)
-        session[userid] = False
+        session[user_id] = False
         return f"消費税額は{str(kingaku)}円です。"
 
     #入力値に合わせた回答文を編集
     if input_message in answers:
         if input_message == "8":
             #消費税計算モードをONにしてセッションに保存
-            session[userid] = True
+            session[user_id] = True
         
         return answers[input_message]
     else:
