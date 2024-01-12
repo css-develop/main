@@ -88,7 +88,7 @@ anserelse = ("お疲れ様です。以下の問い合わせについてお答え
 def test():
     return "OK TEST"
 
-@app.route("/test")
+@app.route("/answer")
 def test_answer():
     input_message = request.args["text"].strip()
     reply_message = create_answer(input_message=input_message).replace("\n", "<br>")
@@ -113,7 +113,7 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    #ログ出力
+    #ログを出力
     app.logger.info("ユーザー入力値: " + event.message.text)
 
     #ユーザ入力値から前後の改行を削除
