@@ -75,10 +75,13 @@ answers["7"] = ("以下の書類を提出お願いいたします。\n"
 "　※本籍地・マイナンバーの記載は不要\n"
 "　 ※メールで提出の場合は、写しで可")
 
-answers["8"] = "消費税額を計算します。\n金額を入力してください。"
-answers["9"] = "消費税額（軽減税率対象）を計算します。\n金額を入力してください。"
+#8が入力された場合の回答文を定義
+answers["8"] = "中央　太郎。\n〇〇大学\n△△学科"
 
-#7が入力された場合の回答文を定義
+#9が入力された場合の回答文を定義
+answers["9"] = "消費税額を計算します。\n金額を入力してください。"
+
+#上記以外の番号が入力された場合の回答文を定義
 anserelse = ("お疲れ様です。以下の問い合わせについてお答えします。該当する番号を記入してください。\n"
 "1.通勤定期代更\n"
 "3.経費精算手続き\n"
@@ -132,21 +135,28 @@ def handle_message(event):
         TextSendMessage(text=reply_message))
     
 def create_answer(input_message, user_id):
-    #セッションから計算モードフラグを取得
+    #セッションからユーザーIDに紐づく計算モードフラグを取得
     isCalcMode = session.get(user_id, False)
     if isCalcMode:
         if not input_message.isdigit():
+            #計算モードかつ入力値が整数でない場合
             return "整数値のみを入力してください。\n文字や小数値は入力できません。"
         
-        # 消費税計算
+        #消費税計算
         kingaku = int(int(input_message) * 0.1)
+        #セッションの計算モードをOFF
         session[user_id] = False
         return f"消費税額は{str(kingaku)}円です。"
+    
+    if len(input_message) >= 4:
+        if input_message[:3] == "消費税" and input_message[3:].isdigit():
+            kingaku = int(int(input_message[3:]) * 0.1)
+            return f"消費税額は{str(kingaku)}円です。"
 
     #入力値に合わせた回答文を編集
     if input_message in answers:
-        if input_message == "8":
-            #消費税計算モードをONにしてセッションに保存
+        if input_message == "9":
+            #"9"の場合セッションの計算モードをON
             session[user_id] = True
         
         return answers[input_message]
