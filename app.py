@@ -100,7 +100,7 @@ def test():
 @app.route("/answer")
 def test_answer():
     input_message = request.args["text"].strip()
-    reply_message = create_answer(input_message=input_message, user_id="test_user").replace("\n", "<br>")
+    reply_message = create_answer(input_message=input_message).replace("\n", "<br>")
     return reply_message
 
 @app.route("/callback", methods=['POST'])
@@ -122,43 +122,28 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    #app.logger.info(f"ユーザーID: {event.source.user_id}")
     app.logger.info(f"ユーザー入力値: {event.message.text}")
 
     #ユーザ入力値から前後の改行を削除
     input_message = event.message.text.strip()
-    reply_message = create_answer(input_message=input_message, user_id=event.source.user_id)
+    reply_message = create_answer(input_message=input_message)
 
     #回答文を返信
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=reply_message))
     
-def create_answer(input_message, user_id):
-    #セッションからユーザーIDに紐づく計算モードフラグを取得
-    isCalcMode = session.get(user_id, False)
-    if isCalcMode:
-        if not input_message.isdigit():
-            #計算モードかつ入力値が整数でない場合
-            return "整数値のみを入力してください。\n文字や小数値は入力できません。"
-        
-        #消費税計算
-        kingaku = int(int(input_message) * 0.1)
-        #セッションの計算モードをOFF
-        session[user_id] = False
-        return f"消費税額は{str(kingaku)}円です。"
-    
+def create_answer(input_message):
     if len(input_message) >= 4:
+        #入力値が4文字以上の場合
         if input_message[:3] == "消費税" and input_message[3:].isdigit():
-            kingaku = int(int(input_message[3:]) * 0.1)
-            return f"消費税額は{str(kingaku)}円です。"
+            #入力値の頭3文字が"消費税"かつ4文字目以降が整数値の場合
+            #入力値の4文字目以降の値で消費税を計算（小数は切り捨て）
+            result = int(int(input_message[3:]) * 0.1)
+            return f"消費税額は{str(result)}円です。"
 
     #入力値に合わせた回答文を編集
     if input_message in answers:
-        if input_message == "9":
-            #"9"の場合セッションの計算モードをON
-            session[user_id] = True
-        
         return answers[input_message]
     else:
         #入力対象外は番号を選択させる文を回答
