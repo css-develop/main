@@ -20,7 +20,7 @@ handler = WebhookHandler('9792df5d3386f64f2f7ca907f1a2c1bc')
 #回答文を設定するマップ
 answers = {}
 #1が入力された場合の回答を定義
-answers["1"] = ("こんにちは")
+answers["1"] = ("こんにちはaa")
 
 #2が入力された場合の回答を定義
 answers["2"] = ("desknet'sにログインし、以下の手順で申請してください\n"
